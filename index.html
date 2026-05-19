@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kromos - Visual Inspiration</title>
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navegación -->
+    <aside class="sidebar">
+      <div class="logo">
+        <i class="ph-fill ph-aperture logo-icon"></i>
+        <span>Kromos</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <p class="nav-title">Menu</p>
+        <a href="#" class="nav-item active" data-view="all">
+          <i class="ph ph-house"></i>
+          <span>Inicio</span>
+        </a>
+        <a href="#" class="nav-item" data-view="explore">
+          <i class="ph ph-compass"></i>
+          <span>Explorar</span>
+        </a>
+        <a href="#" class="nav-item" data-open-create>
+          <i class="ph ph-plus-square"></i>
+          <span>Crear</span>
+        </a>
+      </nav>
+
+      <nav class="nav-menu">
+        <p class="nav-title">Librería</p>
+        <a href="#" class="nav-item" data-view="liked">
+          <i class="ph ph-heart"></i>
+          <span>Me Gusta</span>
+        </a>
+        <a href="#" class="nav-item" data-view="saved">
+          <i class="ph ph-folder-simple"></i>
+          <span>Tableros</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-bottom">
+        <a href="#" class="nav-item">
+          <i class="ph ph-gear"></i>
+          <span>Ajustes</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+      
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="search-container">
+          <i class="ph ph-magnifying-glass search-icon"></i>
+          <input type="text" placeholder="Buscar inspiración, imágenes, artistas..." class="search-input" id="search-input">
+        </div>
+        
+        <div class="user-actions">
+          <button class="create-btn" data-open-create>
+            <i class="ph ph-plus"></i>
+            <span>Crear</span>
+          </button>
+          <button class="action-btn notifications-btn">
+            <i class="ph ph-bell"></i>
+            <span class="badge">3</span>
+          </button>
+          <button class="action-btn profile-btn" id="account-button" aria-label="Cuenta">
+            <img src="https://i.pravatar.cc/150?img=68" alt="User Profile" class="avatar">
+          </button>
+        </div>
+      </header>
+
+      <!-- Contenedor del Grid Masonry -->
+      <div class="masonry-wrapper">
+        <div class="filter-chips">
+          <button class="chip active" data-category="Todos">Para ti</button>
+          <button class="chip" data-category="Fotografía">Fotografía</button>
+          <button class="chip" data-category="Diseño UI">Diseño UI</button>
+          <button class="chip" data-category="Arte Digital">Arte Digital</button>
+          <button class="chip" data-category="Arquitectura">Arquitectura</button>
+          <button class="chip" data-category="Mis subidas">Mis subidas</button>
+        </div>
+
+        <div class="masonry-grid" id="masonry-grid">
+          <!-- Las imágenes se insertarán dinámicamente con JS -->
+        </div>
+      </div>
+      
+    </main>
+
+  </div>
+
+  <div class="modal-backdrop" id="create-modal" aria-hidden="true">
+    <section class="create-modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">Nuevo pin local</p>
+          <h2 id="create-title">Sube una imagen</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-create aria-label="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <form class="create-form" id="create-form">
+        <label class="upload-dropzone" for="image-input" id="dropzone">
+          <input id="image-input" type="file" accept="image/*" hidden>
+          <img id="image-preview" class="image-preview" alt="">
+          <span class="upload-empty" id="upload-empty">
+            <i class="ph ph-image-square"></i>
+            <strong>Elige o arrastra una imagen</strong>
+            <small>Se guardará en este navegador por ahora</small>
+          </span>
+        </label>
+
+        <div class="form-fields">
+          <label>
+            <span>Título</span>
+            <input id="title-input" name="title" type="text" maxlength="70" placeholder="Ej. Moodboard oscuro" required>
+          </label>
+          <label>
+            <span>Autor</span>
+            <input id="author-input" name="author" type="text" maxlength="40" placeholder="Tu nombre">
+          </label>
+          <label>
+            <span>Categoría</span>
+            <select id="category-input" name="category">
+              <option>Fotografía</option>
+              <option>Diseño UI</option>
+              <option>Arte Digital</option>
+              <option>Arquitectura</option>
+              <option>Mis subidas</option>
+            </select>
+          </label>
+          <button class="submit-pin" type="submit">
+            <i class="ph ph-upload-simple"></i>
+            <span>Publicar local</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="auth-modal" aria-hidden="true">
+    <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">Tu cuenta</p>
+          <h2 id="auth-title">Entra a Kromos</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-auth aria-label="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" type="button" data-auth-mode="login">Iniciar sesión</button>
+        <button class="auth-tab" type="button" data-auth-mode="register">Crear cuenta</button>
+      </div>
+
+      <form class="auth-form" id="auth-form">
+        <label class="register-only">
+          <span>Nombre</span>
+          <input id="auth-name" name="name" type="text" maxlength="60" placeholder="Tu nombre">
+        </label>
+        <label>
+          <span>Correo</span>
+          <input id="auth-email" name="email" type="email" maxlength="160" placeholder="tu@correo.com" required>
+        </label>
+        <label>
+          <span>Contraseña</span>
+          <input id="auth-password" name="password" type="password" minlength="8" maxlength="120" placeholder="Mínimo 8 caracteres" required>
+        </label>
+        <p class="auth-message" id="auth-message"></p>
+        <button class="submit-pin" type="submit">
+          <i class="ph ph-sign-in"></i>
+          <span>Entrar</span>
+        </button>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="profile-modal" aria-hidden="true">
+    <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+      <div class="modal-header">
+        <div>
+          <p class="modal-kicker">Perfil</p>
+          <h2 id="profile-title">Tu cuenta</h2>
+        </div>
+        <button class="modal-close" type="button" data-close-profile aria-label="Cerrar">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+
+      <form class="profile-card" id="profile-form">
+        <label class="profile-avatar-picker" for="profile-avatar-input">
+          <input id="profile-avatar-input" name="avatar" type="file" accept="image/*" hidden>
+          <img id="profile-avatar-preview" class="profile-avatar-large" src="https://i.pravatar.cc/150?img=68" alt="">
+          <span>
+            <strong>Cambiar foto</strong>
+            <small>JPG, PNG o WebP</small>
+          </span>
+        </label>
+
+        <div class="profile-meta">
+          <strong id="profile-name">Usuario</strong>
+          <span id="profile-email">correo@ejemplo.com</span>
+        </div>
+
+        <p class="auth-message" id="profile-message"></p>
+
+        <button class="submit-pin" type="submit">
+          <i class="ph ph-image-square"></i>
+          <span>Guardar foto</span>
+        </button>
+        <button class="secondary-action" type="button" id="logout-button">
+          <i class="ph ph-sign-out"></i>
+          <span>Cerrar sesión</span>
+        </button>
+      </form>
+    </section>
+  </div>
+  
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

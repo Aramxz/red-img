@@ -1,0 +1,42 @@
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name VARCHAR(60) NOT NULL,
+  email VARCHAR(160) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  avatar_url TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pins (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  title VARCHAR(90) NOT NULL,
+  author VARCHAR(60) NOT NULL DEFAULT 'Tú',
+  category VARCHAR(40) NOT NULL,
+  image_url TEXT NOT NULL,
+  avatar_url TEXT NOT NULL,
+  liked BOOLEAN NOT NULL DEFAULT FALSE,
+  saved BOOLEAN NOT NULL DEFAULT FALSE,
+  is_local BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE pins ADD COLUMN IF NOT EXISTS owner_id TEXT REFERENCES users(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS pin_reactions (
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pin_id TEXT NOT NULL REFERENCES pins(id) ON DELETE CASCADE,
+  liked BOOLEAN NOT NULL DEFAULT FALSE,
+  saved BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, pin_id)
+);
+
+CREATE INDEX IF NOT EXISTS pins_created_at_idx ON pins (created_at DESC);
+CREATE INDEX IF NOT EXISTS pins_category_idx ON pins (category);
+CREATE INDEX IF NOT EXISTS pins_liked_idx ON pins (liked);
+CREATE INDEX IF NOT EXISTS pins_saved_idx ON pins (saved);
+CREATE INDEX IF NOT EXISTS users_email_idx ON users (email);
+CREATE INDEX IF NOT EXISTS pin_reactions_pin_id_idx ON pin_reactions (pin_id);
