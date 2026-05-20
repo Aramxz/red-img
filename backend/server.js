@@ -464,3 +464,4 @@ start().catch((error) => {
   logger.fatal({ error }, 'failed to start server');
   process.exit(1);
 });
+  
