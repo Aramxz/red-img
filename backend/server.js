@@ -30,7 +30,10 @@ const authSchema = z.object({
 const pinSchema = z.object({
   title: z.string().trim().min(1).max(90),
   author: z.string().trim().max(60).optional(),
-  category: z.enum(['Fotografía', 'Diseño UI', 'Arte Digital', 'Arquitectura', 'Mis subidas'])
+  category: z.enum(['Fotografía', 'Diseño UI', 'Arte Digital', 'Arquitectura', 'Mis subidas']),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
+  municipio: z.string().trim().max(100).optional()
 });
 
 const reactionSchema = z.object({
@@ -247,9 +250,10 @@ app.get('/api/pins', async (request, response, next) => {
 
     const sql = `
       SELECT p.id, p.owner_id, p.title, p.author, p.category, p.image_url, p.avatar_url,
-             COALESCE(pr.liked, FALSE) AS liked,
-             COALESCE(pr.saved, FALSE) AS saved,
-             p.is_local, p.created_at
+       p.latitude, p.longitude, p.municipio,
+       COALESCE(pr.liked, FALSE) AS liked,
+       COALESCE(pr.saved, FALSE) AS saved,
+       p.is_local, p.created_at
       FROM pins p
       LEFT JOIN pin_reactions pr ON pr.pin_id = p.id AND pr.user_id = $${reactionUserParam}
       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
@@ -275,10 +279,10 @@ app.post('/api/pins', requireUser, upload.single('image'), async (request, respo
     const imageUrl = `/uploads/${request.file.filename}`;
 
     const { rows } = await pool.query(
-      `INSERT INTO pins (id, owner_id, title, author, category, image_url, avatar_url, is_local)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)
-       RETURNING id, owner_id, title, author, category, image_url, avatar_url, FALSE AS liked, FALSE AS saved, is_local, created_at`,
-      [id, request.user.id, input.title, input.author || request.user.name, input.category, imageUrl, request.user.avatar_url]
+      `INSERT INTO pins (id, owner_id, title, author, category, image_url, avatar_url, is_local, latitude, longitude, municipio)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, $8, $9, $10)
+       RETURNING id, owner_id, title, author, category, image_url, avatar_url, FALSE AS liked, FALSE AS saved, is_local, latitude, longitude, municipio, created_at`,
+      [id, request.user.id, input.title, input.author || request.user.name, input.category, imageUrl, request.user.avatar_url, input.latitude || null, input.longitude || null, input.municipio || null]
     );
 
     response.status(201).json({ pin: toPin(rows[0], request.user.id) });
@@ -419,6 +423,9 @@ function toPin(row, userId) {
     liked: row.liked,
     saved: row.saved,
     local: Boolean(userId && row.owner_id === userId),
+    latitude: row.latitude,
+    longitude: row.longitude,
+    municipio: row.municipio,
     createdAt: row.created_at
   };
 }

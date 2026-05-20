@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const submitButton = createForm.querySelector('.submit-pin');
+    const submitButton = createForm.querySelector('button[type="submit"]');
     submitButton.disabled = true;
     submitButton.querySelector('span').textContent = 'Publicando...';
 
@@ -233,12 +233,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  grid.addEventListener('click', async (event) => {
+grid.addEventListener('click', async (event) => {
     const actionButton = event.target.closest('[data-action]');
-    if (!actionButton) return;
+    const card = event.target.closest('.pin-card');
+
+    if (!card) return;
+
+    if (!actionButton) {
+      const pin = state.pins.find((item) => item.id === card.dataset.id);
+      if (pin) openPinModal(pin);
+      return;
+    }
 
     event.stopPropagation();
-    const card = event.target.closest('.pin-card');
     const pin = state.pins.find((item) => item.id === card.dataset.id);
     if (!pin) return;
 
@@ -467,8 +474,29 @@ function openCreateModal(modal, firstInput) {
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => firstInput.focus());
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      document.getElementById('input-lat').value = latitude;
+      document.getElementById('input-lng').value = longitude;
+      reverseMunicipio(latitude, longitude);
+    });
+  }
 }
 
+async function reverseMunicipio(lat, lng) {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=es`
+    );
+    const data = await response.json();
+    const municipio = data.address?.county || data.address?.municipality || data.address?.city || 'Estado de México';
+    document.getElementById('input-municipio').value = municipio;
+  } catch {
+    document.getElementById('input-municipio').value = 'Estado de México';
+  }
+}
 function openAuthModal(modal, mode) {
   setAuthMode(mode);
   modal.classList.add('open');
@@ -608,4 +636,69 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+function openPinModal(pin) {
+  const modal = document.getElementById('pin-modal');
+  document.getElementById('pin-detail-img').src = resolveAssetUrl(pin.url);
+  document.getElementById('pin-detail-title').textContent = pin.title;
+  document.getElementById('pin-detail-author').textContent = pin.author;
+  document.getElementById('pin-detail-municipio').textContent = pin.municipio || 'Sin ubicación registrada';
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+
+  setTimeout(async () => {
+    if (window._pinMap) {
+      window._pinMap.remove();
+      window._pinMap = null;
+    }
+
+    const map = L.map('pin-map', { zoomControl: true });
+    window._pinMap = map;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    if (pin.latitude && pin.longitude) {
+      map.setView([pin.latitude, pin.longitude], 11);
+      L.marker([pin.latitude, pin.longitude]).addTo(map).bindPopup(pin.municipio || pin.title).openPopup();
+
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pin.municipio + ', Estado de México, México')}&format=json&polygon_geojson=1&limit=1`
+        );
+        const data = await res.json();
+        if (data[0]?.geojson) {
+          L.geoJSON(data[0].geojson, {
+            style: {
+              color: '#1ed760',
+              weight: 2,
+              fillColor: '#1ed760',
+              fillOpacity: 0.15
+            },
+            pointToLayer: () => null
+          }).addTo(map);
+        }
+      } catch {
+        // Si falla el polígono, solo se muestra el marcador
+      }
+    } else {
+      map.setView([19.2965, -99.6562], 8);
+    }
+  }, 100);
+
+  document.getElementById('close-pin-modal').onclick = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (window._pinMap) { window._pinMap.remove(); window._pinMap = null; }
+  };
+
+  modal.onclick = (event) => {
+    if (event.target === modal) {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      if (window._pinMap) { window._pinMap.remove(); window._pinMap = null; }
+    }
+  };
 }

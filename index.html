@@ -12,6 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+ <!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <!-- Styles -->
   <link rel="stylesheet" href="./src/style.css">
 </head>
@@ -148,10 +152,13 @@
               <option>Mis subidas</option>
             </select>
           </label>
-          <button class="submit-pin" type="submit">
-            <i class="ph ph-upload-simple"></i>
-            <span>Publicar local</span>
-          </button>
+        <input type="hidden" id="input-lat" name="latitude">
+        <input type="hidden" id="input-lng" name="longitude">
+        <input type="hidden" id="input-municipio" name="municipio">
+        <button class="submit-pin" type="submit">
+          <i class="ph ph-upload-simple"></i>
+          <span>Publicar local</span>
+        </button>
         </div>
       </form>
     </section>
@@ -236,6 +243,29 @@
       </form>
     </section>
   </div>
+  
+<!--mapa-->
+
+  <div class="modal-backdrop" id="pin-modal" aria-hidden="true">
+  <section class="pin-detail-modal" role="dialog" aria-modal="true">
+    <button class="modal-close pin-modal-close" type="button" id="close-pin-modal">
+      <i class="ph ph-x"></i>
+    </button>
+    <div class="pin-detail-content">
+      <div class="pin-detail-image-wrap">
+        <img id="pin-detail-img" src="" alt="" />
+        <div class="pin-detail-info">
+          <h2 id="pin-detail-title"></h2>
+          <p id="pin-detail-author"></p>
+        </div>
+      </div>
+      <div class="pin-detail-map-wrap">
+        <div id="pin-map"></div>
+        <p class="pin-municipio-label">📍 <span id="pin-detail-municipio">Sin ubicación</span></p>
+      </div>
+    </div>
+  </section>
+</div>
   
   <script type="module" src="./src/main.js"></script>
 </body>

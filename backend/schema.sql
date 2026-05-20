@@ -40,3 +40,6 @@ CREATE INDEX IF NOT EXISTS pins_liked_idx ON pins (liked);
 CREATE INDEX IF NOT EXISTS pins_saved_idx ON pins (saved);
 CREATE INDEX IF NOT EXISTS users_email_idx ON users (email);
 CREATE INDEX IF NOT EXISTS pin_reactions_pin_id_idx ON pin_reactions (pin_id);
+ALTER TABLE pins ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
+ALTER TABLE pins ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+ALTER TABLE pins ADD COLUMN IF NOT EXISTS municipio VARCHAR(100);
