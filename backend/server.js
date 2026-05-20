@@ -94,7 +94,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 app.use('/uploads', express.static(uploadPath));
-app.use(attachUser);
+
 
 app.get('/api/health', async (_request, response, next) => {
   try {
@@ -347,6 +347,7 @@ app.delete('/api/pins/:id', requireUser, async (request, response, next) => {
 });
 
 app.use(express.static(path.resolve(projectRoot, 'dist')));
+app.use(attachUser);
 app.get(/.*/, (_request, response) => {
   response.sendFile(path.resolve(projectRoot, 'dist', 'index.html'));
 });
