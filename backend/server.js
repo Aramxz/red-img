@@ -288,7 +288,17 @@ app.post('/api/pins', requireUser, upload.single('image'), async (request, respo
 
     const input = pinSchema.parse(request.body);
     const id = randomUUID();
-    const imageUrl = `/uploads/${request.file.filename}`;
+    const ext = path.extname(request.file.originalname).toLowerCase() || '.jpg';
+    const filename = `${randomUUID()}${ext}`;
+
+    await s3.send(new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: filename,
+      Body: request.file.buffer,
+      ContentType: request.file.mimetype
+    }));
+
+    const imageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
 
     const { rows } = await pool.query(
       `INSERT INTO pins (id, owner_id, title, author, category, image_url, avatar_url, is_local, latitude, longitude, municipio)
