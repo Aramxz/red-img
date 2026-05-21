@@ -14,7 +14,15 @@ import { z } from 'zod';
 import { config } from './config.js';
 import { migrate, pool, seedPins } from './db.js';
 import { logger } from './logger.js';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const uploadPath = path.resolve(projectRoot, config.uploadDir);
@@ -41,27 +49,21 @@ const reactionSchema = z.object({
   saved: z.boolean().optional()
 });
 
-const storage = multer.diskStorage({
-  destination: (_request, _file, callback) => callback(null, uploadPath),
-  filename: (_request, file, callback) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    callback(null, `${randomUUID()}${ext}`);
-  }
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
   limits: { fileSize: config.maxUploadMb * 1024 * 1024 },
   fileFilter: (_request, file, callback) => {
-    const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']);
-    const ext = path.extname(file.originalname).toLowerCase();
-
-    if (!file.mimetype.startsWith('image/') && !allowedExtensions.has(ext)) {
-      callback(new Error('Solo se permiten archivos de imagen.'));
-      return;
-    }
-
-    callback(null, true);
+    const ext = path.extname(request.file.originalname).toLowerCase() || '.jpg';
+const filename = `avatars/${randomUUID()}${ext}`;
+await s3.send(new PutObjectCommand({
+  Bucket: process.env.AWS_S3_BUCKET,
+  Key: filename,
+  Body: request.file.buffer,
+  ContentType: request.file.mimetype
+}));
+const avatarUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
   }
 });
 
