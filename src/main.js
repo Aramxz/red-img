@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showError(grid, error.message);
     } finally {
       submitButton.disabled = false;
-      submitButton.querySelector('span').textContent = 'Publicar local';
+      submitButton.querySelector('span').textContent = 'Publicar';
     }
   });
 
