@@ -75,7 +75,8 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
   'http://localhost:5173',
   'http://127.0.0.1:5174',
-  'http://localhost:5174'
+  'http://localhost:5174',
+  'https://red-img.onrender.com'
 ]);
 
 app.use(cors({
@@ -358,11 +359,8 @@ app.use((error, request, response, _next) => {
     error, 
     stack: error?.stack,
     message: error?.message,
-    type: typeof error,
     errorString: String(error)
   }, 'request failed');
-  const requestLogger = request.log || logger;
-  requestLogger.error({ error, stack: error?.stack }, 'request failed');
 
   if (error instanceof z.ZodError) {
     response.status(400).json({ error: 'Datos inválidos.', details: error.issues });
