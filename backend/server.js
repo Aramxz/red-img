@@ -422,7 +422,7 @@ function setSessionCookie(response, userId) {
 function cookieOptions() {
   return {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: config.cookieSecure ? 'none' : 'lax',
     secure: config.cookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/'
