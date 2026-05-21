@@ -354,7 +354,7 @@ app.get(/.*/, (_request, response) => {
 
 app.use((error, request, response, _next) => {
   const requestLogger = request.log || logger;
-  requestLogger.error({ error }, 'request failed');
+  requestLogger.error({ error, stack: error?.stack }, 'request failed');
 
   if (error instanceof z.ZodError) {
     response.status(400).json({ error: 'Datos inválidos.', details: error.issues });
