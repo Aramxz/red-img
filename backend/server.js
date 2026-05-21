@@ -67,7 +67,16 @@ const upload = multer({
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "https://nominatim.openstreetmap.org"],
+    }
+  }
 }));
 
 const allowedOrigins = new Set([
@@ -75,8 +84,7 @@ const allowedOrigins = new Set([
   'http://127.0.0.1:5173',
   'http://localhost:5173',
   'http://127.0.0.1:5174',
-  'http://localhost:5174',
-  'https://red-img.onrender.com'
+  'http://localhost:5174'
 ]);
 
 app.use(cors({
@@ -95,7 +103,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 app.use('/uploads', express.static(uploadPath));
-
+app.use(attachUser);
 
 app.get('/api/health', async (_request, response, next) => {
   try {
@@ -348,19 +356,13 @@ app.delete('/api/pins/:id', requireUser, async (request, response, next) => {
 });
 
 app.use(express.static(path.resolve(projectRoot, 'dist')));
-app.use(attachUser);
 app.get(/.*/, (_request, response) => {
   response.sendFile(path.resolve(projectRoot, 'dist', 'index.html'));
 });
 
 app.use((error, request, response, _next) => {
   const requestLogger = request.log || logger;
-  requestLogger.error({ 
-    error, 
-    stack: error?.stack,
-    message: error?.message,
-    errorString: String(error)
-  }, 'request failed');
+  requestLogger.error({ error }, 'request failed');
 
   if (error instanceof z.ZodError) {
     response.status(400).json({ error: 'Datos inválidos.', details: error.issues });
@@ -413,7 +415,7 @@ function setSessionCookie(response, userId) {
 function cookieOptions() {
   return {
     httpOnly: true,
-    sameSite: config.cookieSecure ? 'none' : 'lax',
+    sameSite: 'lax',
     secure: config.cookieSecure,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/'
@@ -462,4 +464,3 @@ start().catch((error) => {
   logger.fatal({ error }, 'failed to start server');
   process.exit(1);
 });
-  
