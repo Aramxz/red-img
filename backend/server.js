@@ -184,7 +184,17 @@ app.patch('/api/users/me/avatar', requireUser, upload.single('avatar'), async (r
       return;
     }
 
-    const avatarUrl = `/uploads/${request.file.filename}`;
+    const ext = path.extname(request.file.originalname).toLowerCase() || '.jpg';
+    const filename = `avatars/${randomUUID()}${ext}`;
+
+    await s3.send(new PutObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: filename,
+      Body: request.file.buffer,
+      ContentType: request.file.mimetype
+    }));
+
+    const avatarUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${filename}`;
     const client = await pool.connect();
 
     try {
