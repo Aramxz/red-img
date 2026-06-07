@@ -70,11 +70,13 @@ const upload = multer({
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   contentSecurityPolicy: {
-    directives: {
+     directives: {
+    defaultSrc: ["'self'"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
     fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
-    connectSrc: ["'self'", "https://nominatim.openstreetmap.org", "https://unpkg.com"],
     scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+    imgSrc: ["'self'", "data:", "blob:", "https://kromos-uploads.s3.us-east-1.amazonaws.com", "https://i.pravatar.cc", "https://picsum.photos", "https://api.dicebear.com"],
+    connectSrc: ["'self'", "https://nominatim.openstreetmap.org", "https://unpkg.com"],
   }
   }
 }));
